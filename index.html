@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #282c34;
+    }
+    canvas {
+      border: 2px solid white;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 16px;
+      background-color: #61dafb;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+  </style>
+  <title>Fluid Simulation</title>
+</head>
+<body>
+  <canvas id="fluidCanvas" width="400" height="400"></canvas>
+  <button id="toggleButton" onclick="toggleAnimation()">Toggle Animation</button>
+  <script>
+    const canvas = document.getElementById('fluidCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    const particles = [];
+    const numParticles = 200;
+    
+    let animationRunning = false;
+
+    class Particle {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.size = Math.random() * 5 + 2;
+        this.speedX = (Math.random() - 0.5) * 3;
+        this.speedY = (Math.random() - 0.5) * 3;
+        this.maxSize = this.size;
+        this.sizeChange = (Math.random() * 0.5 + 0.1) * (Math.random() < 0.5 ? 1 : -1);
+      }
+      
+      draw() {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+      
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        
+        // Bounce off the walls
+        if (this.x - this.size < 0 || this.x + this.size > canvas.width) {
+          this.speedX = -this.speedX;
+        }
+        if (this.y - this.size < 0 || this.y + this.size > canvas.height) {
+          this.speedY = -this.speedY;
+        }
+        
+        // Change size over time
+        this.size += this.sizeChange;
+        
+        // Ensure size stays within bounds
+        this.size = Math.max(0.2, Math.min(this.maxSize, this.size));
+      }
+    }
+    
+    function createParticles() {
+      for (let i = 0; i < numParticles; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        particles.push(new Particle(x, y));
+      }
+    }
+    
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const particle of particles) {
+        particle.draw();
+        particle.update();
+      }
+      if (animationRunning) {
+        requestAnimationFrame(animate);
+      }
+    }
+    
+    function toggleAnimation() {
+      if (animationRunning) {
+        particles.length = 0; // Clear the particles array
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        animationRunning = false;
+      } else {
+        createParticles();
+        animationRunning = true;
+        animate();
+      }
+    }
+  </script>
+</body>
+</html>
